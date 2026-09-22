@@ -18,7 +18,7 @@ Visit `http://localhost:8000`.
 - `index.html` — portfolio landing page
 - `soc-automation.html` — SOC Automation Lab case study
 - `threat-hunting.html` — Splunk threat-hunting case study
-- `threat-hunting-evidence/` — 19 supporting Day 6 screenshots
+- `threat-hunting-evidence/` — supporting Day 6 screenshots
 - `style.css` — shared responsive dark-glass interface
 - `script.js` — reveal effects, terminal animation and accessible image lightbox
 
