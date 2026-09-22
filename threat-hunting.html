@@ -41,8 +41,8 @@
       <div class="section-head reveal"><div class="eyebrow">01 // EXECUTIVE SUMMARY</div><h2>Observed facts separated from inference</h2></div>
       <div class="overview-grid">
         <article class="glass prose-card reveal">
-          <p>This is a training investigation, not a production incident. Hunts 1 and 2 use the <strong>Splunk: Exploring SPL</strong> Windows dataset; Hunt 3 uses the separate <strong>Day 5 — Did you SIEM?</strong> firewall dataset. These datasets do not form one attack timeline.</p>
-          <p>Queries were run in the lab and the supplied screenshots form the evidence set. Times are Splunk-displayed times unless stated otherwise. The Windows screenshots contain differences between displayed times and embedded UTC timestamps, so no precise cross-source timing claim is made.</p>
+          <p>This is a training investigation and not a production incident. Hunts 1 and 2 use the Splunk exploring SPL Windows dataset. Hunt 3 uses the separate Day 5 Did You SIEM (TryHackme)? firewall dataset. These datasets do not form one attack timeline.</p>
+          <p>Queries were run in the lab and i have supplied screenshots for evidence. The Windows screenshots contain differences between displayed times and embedded UTC timestamps, so no precise cross source timing claim is made.</p>
         </article>
         <aside class="stack-panel reveal">
           <div class="glass side-card"><div class="mini-label mono">EVIDENCE STANDARD</div><div class="signal-row"><span>Environment</span><b>Authorised training lab</b></div><div class="signal-row"><span>Time basis</span><b>Splunk display time</b></div><div class="signal-row"><span>Evidence</span><b>Queries + screenshots</b></div></div>
@@ -83,7 +83,7 @@ EventID=10 TargetImage="*lsass.exe"
             <li>Visible access masks were <code>0x1000</code> and <code>0x2000</code>. These values alone do not prove memory dumping.</li>
           </ul>
           <h3>Finding and limitations</h3>
-          <p>LSASS process access was observed, but credential dumping was not confirmed. The reviewed evidence did not establish a dump file, credential-dumping command or malicious accessing process. A familiar executable name is also insufficient to establish benign behavior.</p>
+          <p>LSASS process access was observed, but credential dumping was not confirmed. The reviewed evidence did not establish a dump file credential dumping command or malicious accessing during the process. A familiar executable name is also insufficient to establish benign behaviour.</p>
           <p>The later 1,271-event search had lost the GUID filter and cannot be used as LSASS-specific evidence. Its WMIC result became a separate lead for Hunt 2.</p>
           <h3>Recommended follow-up</h3>
           <p>Retrieve process ancestry and endpoint telemetry for the accessing GUIDs; examine access rights, dump-file artifacts and executable integrity. Escalate only if corroborating evidence supports credential theft.</p>
@@ -118,9 +118,9 @@ SourceName="Microsoft-Windows-Security-Auditing" EventID=4720
             <div><b>56078</b><span>4728 — group member added</span></div><div><b>56079</b><span>4720 — account created</span></div><div><b>56080</b><span>4724 — password-reset attempt</span></div><div><b>56081</b><span>4729 — group member removed</span></div><div><b>56082</b><span>4726 — account deleted</span></div>
           </div>
           <p>All five records displayed 08:06:02 and showed <code>James</code> as subject username and <code>Micheal.Beaven</code> as the Hostname label. <code>TargetDomainName=WORKSTATION6</code> was retained separately.</p>
-          <p>The recorded group-add entry precedes the creation entry. That observed ordering is preserved rather than rewritten into an assumed lifecycle. Identical displayed timestamps do not establish the account's precise lifetime, and the password-reset outcome was not independently verified.</p>
+          <p>The recorded group-add entry precedes the creation entry. That observed ordering is preserved rather than rewritten into an assumed lifecycle. Also a Identical displayed timestamps do not establish the account's precise lifetime, and the password reset outcome was not independently verified.</p>
           <h3>Finding and limitations</h3>
-          <p>Account creation and deletion are confirmed. The matching target, account name, actor and adjacent displayed times strongly support a relationship with the WMIC command. Authorization, subsequent account use and malicious intent remain unknown. Deletion alone does not prove attacker cleanup.</p>
+          <p>However account creation and deletion are confirmed. The matching target, account name, actor and adjacent displayed times strongly support a relationship with the WMIC command. Authorization, subsequent account use and malicious intent remain unknown. Deletion alone does not prove attacker cleanup.</p>
           <h3>Recommended follow-up</h3>
           <p>Validate whether James had an approved administrative task, check target-host authentication using the new SID and examine the PowerShell parent activity.</p>
         </article>
@@ -142,7 +142,7 @@ SourceName="Microsoft-Windows-Security-Auditing" EventID=4720
           <pre><code>index=main sourcetype="firewall_logs" earliest=0 latest=now
 | head 3
 | table _raw</code></pre>
-          <p>Samples showed source <code>10.10.1.5</code>. The room text had mentioned <code>10.10.1.15</code>; the investigation used the address in the records. Blocked samples were not counted as successful transfers.</p>
+          <p>Samples showed source <code>10.10.1.5</code>. The room text had mentioned <code>10.10.1.15</code> the investigation used the address in the records. Blocked samples were not counted as successful transfers.</p>
           <p>An exploratory <code>spath</code> aggregation produced an impossible grouped count of 2,280 despite only 1,572 source events. Its 2,018,672-byte total was rejected.</p>
           <pre><code>index=main sourcetype=firewall_logs earliest=0 latest=now
 dest_ip="198.51.100.55" action=ALLOWED
@@ -151,10 +151,10 @@ dest_ip="198.51.100.55" action=ALLOWED
         <article class="glass report-copy reveal">
           <h3>Observed result</h3>
           <div class="finding-cards"><div><span>Destination</span><strong>198.51.100.55</strong></div><div><span>Allowed events</span><strong>285</strong></div><div><span>Recorded bytes</span><strong>126,167</strong></div><div><span>Lab label</span><strong>C2_CONTACT</strong></div></div>
-          <p>The final query filters destination and action, but not source or port. Its value is therefore reported strictly as the allowed-event total to that destination. Source <code>10.10.1.5</code> and port <code>8080</code> come from the earlier grouping; a source-and-port-specific total was not rerun.</p>
+          <p>The final query filters destination and action, but not source or port. Its value is therefore reported strictly as the allowed event total to that destination. Source <code>10.10.1.5</code> and port <code>8080</code> come from the earlier grouping a source and port specific total was not rerun.</p>
           <p>An initial zero-result query searched only September 2026. Adding <code>earliest=0 latest=now</code> included the older dataset and returned results.</p>
           <h3>Finding and limitations</h3>
-          <p>The logs contain 285 allowed events to the C2-labelled destination with 126,167 recorded bytes. This supports suspicious permitted communication and a possible exfiltration lead. It does not establish transferred content, unique sessions or that all bytes represent outbound sensitive data. The C2 classification is the lab's label, not independent threat intelligence.</p>
+          <p>The logs contain 285 allowed events to the C2 labelled destination with 126,167 recorded bytes. This supports suspicious permitted communication and a possible exfiltration. It does not however establish transferred content, unique sessions or that all bytes represent outbound sensitive data. The C2 classification is the lab's label, not independent threat intelligence.</p>
           <h3>Recommended follow-up</h3>
           <p>Correlate traffic with web requests and endpoint processes, confirm byte-field semantics, inspect proxy or packet evidence and validate the destination classification before containment.</p>
         </article>
