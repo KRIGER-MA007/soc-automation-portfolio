@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Three evidence-led Splunk threat hunts covering LSASS access, remote account activity and C2-labelled traffic." />
+  <title>Three Splunk Threat Hunts — Portfolio Case Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="report-page">
+  <div class="bg-grid"></div><div class="orb orb-a"></div><div class="orb orb-b"></div>
+  <div class="cursor-glow" id="cursorGlow"></div><div class="scroll-progress" id="scrollProgress"></div>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html"><span class="brand-dot"></span><span>KRIGER-MA007</span></a>
+      <div class="nav-links"><a href="#summary">Summary</a><a href="#hunt-1">LSASS</a><a href="#hunt-2">Account</a><a href="#hunt-3">C2 Traffic</a><a href="#evidence">Evidence</a></div>
+      <a class="nav-chip mono" href="index.html#projects">ALL PROJECTS ←</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="case-study-hero container">
+      <div class="hero-copy reveal">
+        <div class="eyebrow">PROJECT 02 // SPLUNK THREAT HUNTING</div>
+        <h1>Three Splunk <span>Threat Hunts</span></h1>
+        <p class="hero-role mono">SPL • Windows Sysmon • Security Audit • Firewall Logs</p>
+        <p class="hero-desc">An evidence-led investigation of LSASS process access, remote account activity and possible exfiltration through C2-labelled traffic.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="#summary">Read the report ↓</a><a class="btn btn-ghost" href="soc-automation.html">View Project 01</a></div>
+      </div>
+      <aside class="glass report-metrics reveal-scale" aria-label="Project results">
+        <div><span class="mono">HUNTS</span><strong>03</strong><small>distinct investigations</small></div>
+        <div><span class="mono">LSASS EVENTS</span><strong>25</strong><small>access observed</small></div>
+        <div><span class="mono">C2-LABELLED</span><strong>126,167</strong><small>recorded bytes</small></div>
+      </aside>
+    </header>
+
+    <section id="summary" class="section container">
+      <div class="section-head reveal"><div class="eyebrow">01 // EXECUTIVE SUMMARY</div><h2>Observed facts separated from inference</h2></div>
+      <div class="overview-grid">
+        <article class="glass prose-card reveal">
+          <p>This is a training investigation, not a production incident. Hunts 1 and 2 use the <strong>Splunk: Exploring SPL</strong> Windows dataset; Hunt 3 uses the separate <strong>Day 5 — Did you SIEM?</strong> firewall dataset. These datasets do not form one attack timeline.</p>
+          <p>Queries were run in the lab and the supplied screenshots form the evidence set. Times are Splunk-displayed times unless stated otherwise. The Windows screenshots contain differences between displayed times and embedded UTC timestamps, so no precise cross-source timing claim is made.</p>
+        </article>
+        <aside class="stack-panel reveal">
+          <div class="glass side-card"><div class="mini-label mono">EVIDENCE STANDARD</div><div class="signal-row"><span>Environment</span><b>Authorised training lab</b></div><div class="signal-row"><span>Time basis</span><b>Splunk display time</b></div><div class="signal-row"><span>Evidence</span><b>Queries + screenshots</b></div></div>
+        </aside>
+      </div>
+      <div class="report-table-wrap glass reveal">
+        <table class="report-table"><thead><tr><th>Hunt</th><th>Result</th><th>Confidence and limit</th></tr></thead><tbody>
+          <tr><td>LSASS access</td><td>25 process-access events</td><td>Access observed; credential dumping unconfirmed</td></tr>
+          <tr><td>Remote account activity</td><td>WMIC command, account creation and deletion</td><td>Account changes confirmed; authorization and account use unknown</td></tr>
+          <tr><td>Possible exfiltration</td><td>285 allowed events; 126,167 recorded bytes</td><td>Traffic observed; sensitive-data exfiltration unconfirmed</td></tr>
+        </tbody></table>
+      </div>
+    </section>
+
+    <section id="hunt-1" class="section container report-hunt">
+      <div class="case-hero glass reveal"><div><div class="eyebrow">02 // HUNT 01</div><h2>Investigating LSASS access</h2><p>A process may have accessed LSASS as part of credential theft. Investigate the accessing process and supporting activity before classifying it as credential dumping.</p></div><div class="status-stack"><span class="status medium">INCONCLUSIVE</span><span class="status neutral mono">25 EVENTS</span></div></div>
+      <div class="report-columns">
+        <article class="glass report-copy reveal">
+          <h3>Data and queries</h3>
+          <p>The inventory showed 12,256 events in <code>windowslogs</code> with sourcetype <code>_json</code>, and 2,000 events in <code>vpnlogs</code> with sourcetype <code>kv</code>.</p>
+          <pre><code>index=* earliest=0 latest=now
+| stats count AS events by index sourcetype
+| sort - events</code></pre>
+          <p>The initial LSASS hunt returned 25 events:</p>
+          <pre><code>index=windowslogs earliest=0 latest=now
+EventID=10 TargetImage="*lsass.exe"
+| sort 0 _time
+| table _time Hostname SourceImage TargetImage GrantedAccess SourceProcessGUID TargetProcessGUID</code></pre>
+          <p>An attempted correlation to EventID 1 using <code>ProcessGuid</code> returned no matches. Separate raw-event inspection confirmed process-creation events and the field existed, but did not establish that creation records for the specific accessing processes were available.</p>
+          <p>A broader GUID search returned 180 related records. That result is context, not a count of credential-dumping attempts.</p>
+        </article>
+        <article class="glass report-copy reveal">
+          <h3>Observations</h3>
+          <ul>
+            <li>Displayed date: 15 April 2022, approximately 08:06:02–08:06:43.</li>
+            <li>Source: <code>C:\windows\system32\svchost.exe</code>; target: <code>C:\windows\system32\lsass.exe</code>.</li>
+            <li>Hostname labels included <code>James.browne</code> and <code>Micheal.Beaven</code>; they were not treated as executing usernames.</li>
+            <li>Visible access masks were <code>0x1000</code> and <code>0x2000</code>. These values alone do not prove memory dumping.</li>
+          </ul>
+          <h3>Finding and limitations</h3>
+          <p>LSASS process access was observed, but credential dumping was not confirmed. The reviewed evidence did not establish a dump file, credential-dumping command or malicious accessing process. A familiar executable name is also insufficient to establish benign behavior.</p>
+          <p>The later 1,271-event search had lost the GUID filter and cannot be used as LSASS-specific evidence. Its WMIC result became a separate lead for Hunt 2.</p>
+          <h3>Recommended follow-up</h3>
+          <p>Retrieve process ancestry and endpoint telemetry for the accessing GUIDs; examine access rights, dump-file artifacts and executable integrity. Escalate only if corroborating evidence supports credential theft.</p>
+        </article>
+      </div>
+      <div class="evidence-grid evidence-grid-large">
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/04-lsass-access-events.png" alt="Splunk table showing 25 LSASS access events" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 01</span>25 Event ID 10 records targeting lsass.exe.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/05-lsass-correlation-no-results.png" alt="Splunk LSASS correlation search returning no events" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 02</span>The first GUID correlation returned zero results.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/06-process-creation-events.png" alt="Raw Windows process creation events in Splunk" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 03</span>Process-creation records confirmed the relevant event type and field existed.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/07-guid-related-events.png" alt="Splunk search showing 180 GUID-related events" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 04</span>The broader GUID pivot returned 180 related records.</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="hunt-2" class="section container report-hunt">
+      <div class="case-hero glass reveal"><div><div class="eyebrow">03 // HUNT 02</div><h2>Remote account creation and deletion</h2><p>An account may have been created remotely through WMIC. Correlate the command with account-management records and distinguish the new local identity from similarly named accounts.</p></div><div class="status-stack"><span class="status positive">CHANGES CONFIRMED</span><span class="status neutral mono">INTENT UNKNOWN</span></div></div>
+      <div class="report-columns">
+        <article class="glass report-copy reveal">
+          <h3>Queries and correlation</h3>
+          <pre><code>index=windowslogs earliest=0 latest=now
+EventID=1 Image="*WMIC.exe"
+| sort 0 _time
+| table _time Hostname User Image CommandLine ParentImage ParentCommandLine ProcessGuid</code></pre>
+          <p>One event showed PowerShell launching WMIC under <code>Cybertees\James</code>, targeting <code>WORKSTATION6</code> and requesting creation of <code>Alberto</code> through <code>net user /add</code>. The plaintext lab password is intentionally omitted from this write-up.</p>
+          <pre><code>index=windowslogs earliest=0 latest=now
+SourceName="Microsoft-Windows-Security-Auditing" EventID=4720
+| table _time Hostname SubjectDomainName SubjectUserName TargetDomainName TargetUserName TargetSid</code></pre>
+          <p>The creation record identified <code>WORKSTATION6\Alberto</code>, created by <code>Cybertees\James</code>, with SID <code>S-1-5-21-1969843730-2406867588-1543852148-1000</code>.</p>
+        </article>
+        <article class="glass report-copy reveal">
+          <h3>Recorded account activity</h3>
+          <div class="mini-timeline">
+            <div><b>56078</b><span>4728 — group member added</span></div><div><b>56079</b><span>4720 — account created</span></div><div><b>56080</b><span>4724 — password-reset attempt</span></div><div><b>56081</b><span>4729 — group member removed</span></div><div><b>56082</b><span>4726 — account deleted</span></div>
+          </div>
+          <p>All five records displayed 08:06:02 and showed <code>James</code> as subject username and <code>Micheal.Beaven</code> as the Hostname label. <code>TargetDomainName=WORKSTATION6</code> was retained separately.</p>
+          <p>The recorded group-add entry precedes the creation entry. That observed ordering is preserved rather than rewritten into an assumed lifecycle. Identical displayed timestamps do not establish the account's precise lifetime, and the password-reset outcome was not independently verified.</p>
+          <h3>Finding and limitations</h3>
+          <p>Account creation and deletion are confirmed. The matching target, account name, actor and adjacent displayed times strongly support a relationship with the WMIC command. Authorization, subsequent account use and malicious intent remain unknown. Deletion alone does not prove attacker cleanup.</p>
+          <h3>Recommended follow-up</h3>
+          <p>Validate whether James had an approved administrative task, check target-host authentication using the new SID and examine the PowerShell parent activity.</p>
+        </article>
+      </div>
+      <div class="evidence-grid evidence-grid-large">
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/09-wmic-account-command.png" alt="Splunk result showing a WMIC remote account creation command" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 05</span>WMIC command, acting user and PowerShell parent.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/11-account-creation-raw.png" alt="Raw Windows 4720 account creation event" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 06</span>Raw Security Event 4720 account-creation record.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/12-account-creation-fields.png" alt="Splunk fields for the Alberto account creation event" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 07</span>Actor, target domain, account and SID in a focused table.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/14-account-record-order.png" alt="Five SID-related account records sorted by record number" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 08</span>Five SID-related records preserved in record-number order.</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="hunt-3" class="section container report-hunt">
+      <div class="case-hero glass reveal"><div><div class="eyebrow">04 // HUNT 03</div><h2>Possible exfiltration through C2 traffic</h2><p>Identify permitted traffic to the lab's C2-labelled destination, calculate recorded volume and distinguish suspicious communication from proven sensitive-data exfiltration.</p></div><div class="status-stack"><span class="status medium">SUSPICIOUS TRAFFIC</span><span class="status neutral mono">126,167 BYTES</span></div></div>
+      <div class="report-columns">
+        <article class="glass report-copy reveal">
+          <h3>Data and validation</h3>
+          <p>This hunt uses the separate Day 5 dataset: <code>index=main</code>, <code>sourcetype=firewall_logs</code>. Raw samples contained <code>src_ip</code>, <code>dest_ip</code>, <code>dest_port</code>, <code>action</code>, <code>bytes_transferred</code> and <code>reason</code>.</p>
+          <pre><code>index=main sourcetype="firewall_logs" earliest=0 latest=now
+| head 3
+| table _raw</code></pre>
+          <p>Samples showed source <code>10.10.1.5</code>. The room text had mentioned <code>10.10.1.15</code>; the investigation used the address in the records. Blocked samples were not counted as successful transfers.</p>
+          <p>An exploratory <code>spath</code> aggregation produced an impossible grouped count of 2,280 despite only 1,572 source events. Its 2,018,672-byte total was rejected.</p>
+          <pre><code>index=main sourcetype=firewall_logs earliest=0 latest=now
+dest_ip="198.51.100.55" action=ALLOWED
+| stats count AS events sum(bytes_transferred) AS total_bytes</code></pre>
+        </article>
+        <article class="glass report-copy reveal">
+          <h3>Observed result</h3>
+          <div class="finding-cards"><div><span>Destination</span><strong>198.51.100.55</strong></div><div><span>Allowed events</span><strong>285</strong></div><div><span>Recorded bytes</span><strong>126,167</strong></div><div><span>Lab label</span><strong>C2_CONTACT</strong></div></div>
+          <p>The final query filters destination and action, but not source or port. Its value is therefore reported strictly as the allowed-event total to that destination. Source <code>10.10.1.5</code> and port <code>8080</code> come from the earlier grouping; a source-and-port-specific total was not rerun.</p>
+          <p>An initial zero-result query searched only September 2026. Adding <code>earliest=0 latest=now</code> included the older dataset and returned results.</p>
+          <h3>Finding and limitations</h3>
+          <p>The logs contain 285 allowed events to the C2-labelled destination with 126,167 recorded bytes. This supports suspicious permitted communication and a possible exfiltration lead. It does not establish transferred content, unique sessions or that all bytes represent outbound sensitive data. The C2 classification is the lab's label, not independent threat intelligence.</p>
+          <h3>Recommended follow-up</h3>
+          <p>Correlate traffic with web requests and endpoint processes, confirm byte-field semantics, inspect proxy or packet evidence and validate the destination classification before containment.</p>
+        </article>
+      </div>
+      <div class="evidence-grid evidence-grid-large">
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/16-firewall-raw-events.png" alt="Raw firewall events showing source, destination, action and bytes" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 09</span>Raw firewall samples established the available fields and actual source IP.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/17-c2-exploratory-aggregation.png" alt="Exploratory aggregation showing inflated C2 event and byte totals" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 10</span>Exploratory totals were rejected because the grouped count exceeded the source-event count.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/18-c2-wrong-time-range.png" alt="C2 query returning zero results under the wrong time range" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 11</span>The wrong time range produced zero results.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/19-c2-final-result.png" alt="Final Splunk result showing 285 events and 126167 total bytes" loading="lazy" data-lightbox><figcaption><span class="mono">FIG 12</span>Validated result: 285 events and 126,167 recorded bytes.</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="evidence" class="section container">
+      <div class="section-head reveal"><div class="eyebrow">05 // SUPPORTING EVIDENCE</div><h2>Setup and investigative pivots</h2><p>Additional screenshots record dataset discovery, raw-event inspection and searches that were useful but not treated as conclusive evidence.</p></div>
+      <div class="evidence-grid supporting-gallery">
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/01-lab-environment.png" alt="TryHackMe Splunk lab environment page" loading="lazy" data-lightbox><figcaption>Authorised Splunk training environment.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/02-dataset-inventory.png" alt="Splunk dataset inventory" loading="lazy" data-lightbox><figcaption>Dataset inventory: windowslogs and vpnlogs.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/03-windows-raw-events.png" alt="Raw Windows JSON events in Splunk" loading="lazy" data-lightbox><figcaption>Raw Windows event inspection.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/08-unscoped-event-search.png" alt="Unscoped Windows event search" loading="lazy" data-lightbox><figcaption>Unscoped search retained as a separate lead, not LSASS evidence.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/10-alberto-broad-search.png" alt="Broad Splunk search for Alberto" loading="lazy" data-lightbox><figcaption>Broad name search included a separate domain identity.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/13-account-sid-timeline.png" alt="Full account SID event timeline" loading="lazy" data-lightbox><figcaption>Full SID pivot showing account-management messages.</figcaption></figure>
+        <figure class="media-card glass reveal"><img src="threat-hunting-evidence/15-firewall-wrong-dataset.png" alt="Firewall query returning no events in the wrong dataset" loading="lazy" data-lightbox><figcaption>Initial zero-result firewall search in the wrong lab context.</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="section container conclusion">
+      <div class="glass conclusion-card reveal">
+        <div class="eyebrow">06 // ANALYST REFLECTION</div><h2>Three valid, distinct outcomes</h2>
+        <p>Hunt 1 remains inconclusive for credential dumping; Hunt 2 confirms account changes without establishing malicious intent; Hunt 3 establishes C2-labelled communication without proving sensitive-data exfiltration.</p>
+        <p>Key lessons: verify the dataset and time range; inspect actual field names; correlate identities using SIDs and processes using GUIDs; validate aggregates against source-event counts; and separate observed actions from inferred intent or impact.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="index.html#projects">Back to projects</a><a class="btn btn-ghost" href="#top">Back to top ↑</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container mono"><span>THREE SPLUNK THREAT HUNTS // PROJECT 02</span><span>Splunk • investigation • evidence</span></footer>
+  <div class="lightbox" id="lightbox" aria-hidden="true"><button class="lightbox-close" id="lightboxClose" aria-label="Close image">×</button><img id="lightboxImg" alt="Expanded project evidence" /></div>
+  <script src="script.js"></script>
+</body>
+</html>

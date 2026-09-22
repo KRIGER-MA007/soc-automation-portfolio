@@ -1,29 +1,29 @@
-# SOC Automation Lab Portfolio Page
+# Cybersecurity Project Portfolio
 
-Static portfolio case-study page built with HTML, CSS and JavaScript.
+A static portfolio built with HTML, CSS and JavaScript. The landing page links to two separate case studies:
+
+1. **SOC Automation Lab** — Wazuh, Sysmon, Shuffle SOAR, VirusTotal and TheHive.
+2. **Three Splunk Threat Hunts** — LSASS access, remote account activity and C2-labelled firewall traffic.
 
 ## Run locally
 
-Open `index.html` directly in a browser, or serve the folder with:
-
 ```bash
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 
-Then visit `http://localhost:8000`.
+Visit `http://localhost:8000`.
 
-## Files
+## Structure
 
-- `index.html` — project page
-- `style.css` — dark glass cybersecurity UI
-- `script.js` — terminal animation, reveal effects, image lightbox
-- `assets/` — architecture diagram and project evidence screenshots
+- `index.html` — portfolio landing page
+- `soc-automation.html` — SOC Automation Lab case study
+- `threat-hunting.html` — Splunk threat-hunting case study
+- `threat-hunting-evidence/` — 19 supporting Day 6 screenshots
+- `style.css` — shared responsive dark-glass interface
+- `script.js` — reveal effects, terminal animation and accessible image lightbox
 
-Before publishing, review screenshots for any information you want to redact.
+## GitHub Pages
 
+The site is designed to deploy directly from the repository root on the `main` branch.
 
-## GitHub
-
-Profile: https://github.com/Mohmaed-AA00
-
-Featured public work includes the Policy Deployment Engine repository alongside this SOC automation portfolio project.
+Profile: <https://github.com/KRIGER-MA007>

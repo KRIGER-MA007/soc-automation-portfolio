@@ -2,15 +2,17 @@ const progress = document.getElementById('scrollProgress');
 const glow = document.getElementById('cursorGlow');
 window.addEventListener('scroll', () => {
   const doc = document.documentElement;
-  const pct = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
-  progress.style.width = pct + '%';
+  const available = doc.scrollHeight - doc.clientHeight;
+  const pct = available > 0 ? (doc.scrollTop / available) * 100 : 0;
+  if (progress) progress.style.width = pct + '%';
 });
 document.addEventListener('mousemove', e => {
+  if (!glow) return;
   glow.style.opacity = '1';
   glow.style.left = e.clientX + 'px';
   glow.style.top = e.clientY + 'px';
 });
-document.addEventListener('mouseleave', () => glow.style.opacity = '0');
+document.addEventListener('mouseleave', () => { if (glow) glow.style.opacity = '0'; });
 
 const reveal = new IntersectionObserver(entries => {
   entries.forEach(entry => {
@@ -35,6 +37,7 @@ const sequence = [
 ];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function runTerminal(){
+  if (!terminal) return;
   terminal.innerHTML = '';
   for(const [type,text] of sequence){
     if(type === 'cmd'){
@@ -61,24 +64,36 @@ async function runTerminal(){
   await sleep(1700);
   runTerminal();
 }
-runTerminal();
+if (terminal) runTerminal();
 
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
 const closeBtn = document.getElementById('lightboxClose');
 document.querySelectorAll('[data-lightbox]').forEach(img => {
+  img.tabIndex = 0;
+  img.setAttribute('role', 'button');
+  img.setAttribute('aria-label', `${img.alt}. Open full-size image`);
   img.addEventListener('click', () => {
+    if (!lightbox || !lightboxImg) return;
     lightboxImg.src = img.src;
     lightbox.classList.add('open');
     lightbox.setAttribute('aria-hidden','false');
     document.body.style.overflow = 'hidden';
+    if (closeBtn) closeBtn.focus();
+  });
+  img.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      img.click();
+    }
   });
 });
 function closeLightbox(){
+  if (!lightbox) return;
   lightbox.classList.remove('open');
   lightbox.setAttribute('aria-hidden','true');
   document.body.style.overflow = '';
 }
-closeBtn.addEventListener('click', closeLightbox);
-lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+if (closeBtn) closeBtn.addEventListener('click', closeLightbox);
+if (lightbox) lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });

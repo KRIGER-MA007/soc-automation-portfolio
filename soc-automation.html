@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SOC Automation Lab portfolio case study using Wazuh, Sysmon, Shuffle, VirusTotal and TheHive." />
+  <title>SOC Automation Lab — Portfolio Case Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html"><span class="brand-dot"></span><span>KRIGER-MA007</span></a>
+      <div class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#case-study">Case Study</a>
+        <a href="#evidence">Evidence</a>
+        <a href="#lessons">Lessons</a>
+        <a href="threat-hunting.html">Project 02</a>
+      </div>
+      <a class="nav-chip mono" href="index.html#projects">ALL PROJECTS ←</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="hero container">
+      <div class="hero-copy reveal">
+        <div class="eyebrow">SOC AUTOMATION // SECURITY LAB</div>
+        <h1>SOC Automation <span>Lab</span></h1>
+        <p class="hero-role mono">Wazuh • Sysmon • Shuffle SOAR • VirusTotal • TheHive</p>
+        <p class="hero-desc">An end-to-end SOC automation project focused on endpoint detection, enrichment, alert routing and structured analyst investigation.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#overview">View Project <span>→</span></a>
+          <a class="btn btn-ghost" href="#case-study">Open Case Study</a>
+          <a class="btn btn-ghost" href="index.html#projects">All Projects</a>
+        </div>
+      </div>
+
+      <div class="terminal glass reveal-scale" aria-label="SOC project terminal">
+        <div class="terminal-head">
+          <span class="dot red"></span><span class="dot amber"></span><span class="dot green"></span>
+          <span class="mono term-label">soc-portfolio — project-07</span>
+        </div>
+        <div class="terminal-body mono" id="terminalBody"></div>
+      </div>
+    </header>
+
+    <section id="overview" class="section container">
+      <div class="section-head reveal">
+        <div class="eyebrow">01 // PROJECT OVERVIEW</div>
+        <h2>End-to-end SOC automation</h2>
+      </div>
+      <div class="overview-grid">
+        <article class="glass prose-card reveal">
+          <p>For this project I created an end-to-end SOC automation lab designed to simulate how a modern security team detects, enriches, investigates and manages endpoint security alerts.</p>
+          <p>This environment uses a Wazuh as the SEIM/EDR platform, Sysmon for a detailed windows telemetry, Shuffle as the SOAR orchestration layer, VirusTotal for threat-intelligence enrichment and TheHive for a detailed case management and analyst investigation.</p>
+          <p>The security events generated on the windows endpoint are collected by the Wazuh and forwarded to the Shuffle through a webhook integration. Next shuffle processes the alert and performs the enrichment where applicable and creates the alert in the TheHive for investigation. The analyst (Me) validates the detection, reviews the process and the endpoint for further context, ultimately this determines whether containment is required and make the final verdict.</p>
+          <p>This lad was validated by using multiple detection scenarios including malicious-file activity, suspicious PowerShell execution and suspicious file creation associated with PowerShell. The primary case study focuses in the Suspicious File creation by PowerShell that was investigated and closed as a True Positive authorised lab event no actual impact.</p>
+        </article>
+
+        <aside class="stack-panel reveal">
+          <div class="glass side-card">
+            <div class="mini-label mono">TECHNOLOGY STACK</div>
+            <div class="chips">
+              <span>Windows 11 Endpoint</span><span>Sysmon</span><span>Wazuh</span><span>Shuffle SOAR</span><span>VirusTotal API</span><span>TheHive</span><span>Ubuntu Linux</span><span>VirtualBox</span>
+            </div>
+          </div>
+          <div class="glass side-card">
+            <div class="mini-label mono">PROJECT SIGNAL</div>
+            <div class="signal-row"><span>Detection</span><b>Wazuh + Sysmon</b></div>
+            <div class="signal-row"><span>Automation</span><b>Shuffle</b></div>
+            <div class="signal-row"><span>Enrichment</span><b>VirusTotal</b></div>
+            <div class="signal-row"><span>Case handling</span><b>TheHive</b></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="architecture" class="section container">
+      <div class="section-head reveal">
+        <div class="eyebrow">02 // ARCHITECTURE</div>
+        <h2>How the lab is connected</h2>
+        <p>Endpoint telemetry → detection → enrichment → case handling.</p>
+      </div>
+      <figure class="media-card glass reveal">
+        <img src="architecture.png" alt="SOC Automation Lab Architecture diagram" loading="lazy" data-lightbox />
+        <figcaption><span class="mono">FIGURE 01</span> SOC Automation Lab Architecture</figcaption>
+      </figure>
+    </section>
+
+    <section id="workflow" class="section container">
+      <div class="section-head reveal">
+        <div class="eyebrow">03 // WORKFLOW</div>
+        <h2>Alert orchestration in Shuffle</h2>
+      </div>
+      <div class="workflow-grid">
+        <article class="glass prose-card reveal">
+          <p>The workflow begins when the Wazuh forwards the security alert to Shuffle through a webhook integration. Shuffle then processes the alert and routes it through automation workflow.</p>
+          <p>Then where applicable the alert is enriched by using the VirusTotal to provide additional threat intelligence. This is based on the workflow conditions that relevant alerts are the sent to TheHive where they are created as investigation alerts for analyst to review.</p>
+          <p>The analyst I reviewed the alert inside TheHive validates the detection, proceeds to investigate the endpoint and process context which determines whether containment is really required and make the final verdict.</p>
+          <div class="flow-strip mono">
+            <span>WAZUH ALERT</span><i>→</i><span>SHUFFLE</span><i>→</i><span>VIRUSTOTAL</span><i>→</i><span>THEHIVE</span><i>→</i><span>ANALYST</span>
+          </div>
+        </article>
+        <figure class="media-card workflow-shot glass reveal">
+          <img src="shuffle-workflow.png" alt="Shuffle SOAR workflow" loading="lazy" data-lightbox />
+          <figcaption><span class="mono">FIGURE 02</span> Shuffle SOAR workflow used to receive Wazuh alerts, perform enrichment and route relevant alerts to TheHive.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="case-study" class="section container">
+      <div class="case-hero glass reveal">
+        <div>
+          <div class="eyebrow">04 // PRIMARY CASE STUDY</div>
+          <h2>Suspicious File Creation by PowerShell</h2>
+          <p>Structured investigation of a PowerShell-associated file creation event on the monitored Windows endpoint.</p>
+        </div>
+        <div class="status-stack mono">
+          <span class="status medium">SEVERITY / MEDIUM</span>
+          <span class="status positive">VERDICT / TRUE POSITIVE</span>
+          <span class="status neutral">IMPACT / NO</span>
+        </div>
+      </div>
+
+      <div class="case-grid">
+        <article class="case-step glass reveal">
+          <span class="step-no mono">01</span>
+          <h3>Detection</h3>
+          <p>Wazuh and Sysmon detected PowerShell creating a file in a suspicious Windows system location on <code>WINDOWS-ENDPOINT-01</code>.</p>
+          <p>The alert was forwarded through Shuffle and created inside TheHive with the tags <code>file-creation</code>, <code>powershell</code>, <code>sysmon</code> and <code>wazuh</code>.</p>
+          <p>The alert was assigned <strong>Medium severity</strong> and linked to <strong>Case #3</strong> for investigation.</p>
+        </article>
+
+        <article class="case-step glass reveal">
+          <span class="step-no mono">02</span>
+          <h3>Investigation</h3>
+          <p>The investigation focused on validating the file-creation detection, reviewing the created file and PowerShell process context, checking the endpoint for related activity and determining whether containment was required.</p>
+          <div class="code-panel mono"><span>Rule ID: 92205</span><span>Sysmon Event ID: 11</span><span>Agent ID: 001</span><span>Endpoint: WINDOWS-ENDPOINT-01</span></div>
+          <p>The surrounding activity was reviewed for additional process, file, registry and PowerShell events.</p>
+        </article>
+
+        <article class="case-step glass reveal">
+          <span class="step-no mono">03</span>
+          <h3>Findings</h3>
+          <p>The detected file creation was associated with controlled activity inside the SOC lab.</p>
+          <p>No evidence of persistence, credential theft, lateral movement or unauthorized follow-on execution was identified during the investigation.</p>
+        </article>
+
+        <article class="case-step glass reveal">
+          <span class="step-no mono">04</span>
+          <h3>Containment Decision</h3>
+          <p>No endpoint isolation, account disabling, file quarantine or additional remediation was required because the activity was part of an authorised lab test.</p>
+        </article>
+      </div>
+
+      <div class="verdict glass reveal">
+        <div class="mini-label mono">FINAL VERDICT</div>
+        <div class="verdict-grid">
+          <div><span>Verdict</span><strong>True Positive</strong></div>
+          <div><span>Impact</span><strong>No</strong></div>
+          <div><span>Remediation</span><strong>None required</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="evidence" class="section container">
+      <div class="section-head reveal">
+        <div class="eyebrow">05 // EVIDENCE & RESULTS</div>
+        <h2>Investigation evidence</h2>
+        <p>I used the strongest screenshots from the project to show the workflow from detection through investigation.</p>
+      </div>
+
+      <div class="gallery">
+        <figure class="media-card glass reveal">
+          <img src="thehive-alert.png" alt="TheHive suspicious file creation alert" loading="lazy" data-lightbox />
+          <figcaption><span class="mono">FIGURE 03</span> My TheHive suspicious file creation alert.</figcaption>
+        </figure>
+        <figure class="media-card glass reveal">
+          <img src="detection-validation.png" alt="TheHive detection validation task" loading="lazy" data-lightbox />
+          <figcaption><span class="mono">FIGURE 04</span> My detection validation task showing Rule ID 92205 and Sysmon Event ID 11.</figcaption>
+        </figure>
+        <figure class="media-card glass reveal">
+          <img src="process-context.png" alt="TheHive process context investigation task" loading="lazy" data-lightbox />
+          <figcaption><span class="mono">FIGURE 05</span> My review of the created file and process context.</figcaption>
+        </figure>
+        <figure class="media-card glass reveal">
+          <img src="final-case.png" alt="TheHive final case outcome" loading="lazy" data-lightbox />
+          <figcaption><span class="mono">FIGURE 06</span> My final closed case showing True Positive and Impact: No.</figcaption>
+        </figure>
+      </div>
+
+      <div class="results-grid reveal">
+        <div class="result glass"><span class="result-icon">✓</span><p>I successfully generated and forwarded the detection</p></div>
+        <div class="result glass"><span class="result-icon">✓</span><p>I routed the alert through the Shuffle automation workflow</p></div>
+        <div class="result glass"><span class="result-icon">✓</span><p>I created and investigated the alert inside TheHive</p></div>
+        <div class="result glass"><span class="result-icon">✓</span><p>My final verdict was: <strong>True Positive</strong><br>Impact: No<br>Remediation: None required</p></div>
+      </div>
+    </section>
+
+    <section id="skills" class="section container">
+      <div class="section-head reveal">
+        <div class="eyebrow">06 // SKILLS DEMONSTRATED</div>
+        <h2>What I demonstrated</h2>
+        <p>Through this project, I demonstrated the following skills:</p>
+      </div>
+      <div class="skill-grid reveal">
+        <div class="skill glass">SIEM monitoring</div>
+        <div class="skill glass">Endpoint telemetry analysis</div>
+        <div class="skill glass">SOAR workflow design</div>
+        <div class="skill glass">Webhook and API integration</div>
+        <div class="skill glass">Threat-intelligence enrichment</div>
+        <div class="skill glass">Incident triage</div>
+        <div class="skill glass">Case management</div>
+        <div class="skill glass">PowerShell investigation</div>
+        <div class="skill glass">Sysmon event analysis</div>
+        <div class="skill glass">SOC documentation</div>
+      </div>
+    </section>
+
+    <section id="lessons" class="section container">
+      <div class="section-head reveal">
+        <div class="eyebrow">07 // LESSONS LEARNED</div>
+        <h2>Troubleshooting the integrations</h2>
+        <p>During this project, I encountered several integration and configuration issues that helped me better understand how the different SOC platforms communicate with each other.</p>
+      </div>
+
+      <div class="lesson-grid">
+        <article class="glass lesson reveal"><span class="lesson-tag mono">WEBHOOK</span><h3>Webhook integration</h3><p>I learned how Wazuh forwards JSON alerts to Shuffle through a webhook and how incorrect integration settings can prevent alerts from reaching the SOAR workflow.</p></article>
+        <article class="glass lesson reveal"><span class="lesson-tag mono">AUTH</span><h3>API authentication</h3><p>While connecting Shuffle to TheHive, I encountered authentication and permission errors. I resolved these by configuring the correct API key, organisation permissions and service-user profile before Shuffle could successfully create alerts.</p></article>
+        <article class="glass lesson reveal"><span class="lesson-tag mono">THEHIVE</span><h3>Duplicate alerts</h3><p>I learned that TheHive requires each alert to have a unique <code>sourceRef</code>. When I reused the same reference, I received duplicate-alert errors, so I began using unique references for each test alert.</p></article>
+        <article class="glass lesson reveal"><span class="lesson-tag mono">TUNNEL</span><h3>Cloudflare tunnel changes</h3><p>Because I was running TheHive inside my local lab, I used a Cloudflare Quick Tunnel to make it reachable by Shuffle. I learned that the tunnel URL changes whenever it restarts, which meant I also had to update the TheHive authentication URL inside Shuffle.</p></article>
+        <article class="glass lesson reveal"><span class="lesson-tag mono">VT API</span><h3>VirusTotal enrichment</h3><p>I learned how to extract a file hash from a Wazuh event, submit it to the VirusTotal API and use the returned malicious detection count as part of my workflow decision logic.</p></article>
+        <article class="glass lesson reveal"><span class="lesson-tag mono">ANALYSIS</span><h3>Alert accuracy</h3><p>I learned that I should not automatically treat every event as malicious. Reviewing the original Sysmon and Wazuh data helped me determine whether activity was genuinely suspicious or simply authorised lab or system activity.</p></article>
+        <article class="glass lesson reveal"><span class="lesson-tag mono">CASE MGMT</span><h3>Case management</h3><p>Using TheHive helped me understand the importance of documenting validation, investigation findings, containment decisions and my final verdict rather than simply closing an alert.</p></article>
+      </div>
+
+      <div class="takeaway glass reveal">
+        <div class="mini-label mono">KEY TAKEAWAY</div>
+        <p>The biggest lesson I learned from this project was that SOC automation is not simply about connecting tools together. I found that reliable automation depends on correct authentication, data formatting, permissions, workflow conditions and human validation so alerts can be handled accurately.</p>
+      </div>
+    </section>
+
+    <section class="section container conclusion">
+      <div class="glass conclusion-card reveal">
+        <div class="eyebrow">08 // CONCLUSION</div>
+        <h2>From detection to documented investigation</h2>
+        <p>Through this project I built and tested an end-to-end SOC automation lab using Wazuh, Sysmon, Shuffle, VirusTotal and TheHive.</p>
+        <p>I was able to generate endpoint security events, detect them through Wazuh, route alerts into Shuffle, enrich applicable indicators with VirusTotal and create investigation alerts inside TheHive.</p>
+        <p>I also investigated multiple security events and documented my findings, containment decisions and final verdicts. This project gave me practical experience with SIEM monitoring, SOAR automation, endpoint telemetry, API integrations and structured incident investigation.</p>
+        <a class="btn btn-primary" href="#top">Back to top ↑</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer container mono">
+    <span>SOC AUTOMATION LAB // PROJECT 07</span>
+    <span><a href="https://github.com/KRIGER-MA007" target="_blank" rel="noopener">github.com/KRIGER-MA007 ↗</a> • security • automation • detection</span>
+  </footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close image">×</button>
+    <img id="lightboxImg" alt="Expanded project evidence" />
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
